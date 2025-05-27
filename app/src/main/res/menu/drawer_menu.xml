@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_registro"
+        android:title="Cargar datos emergencia" />
+    <item
+        android:id="@+id/nav_confirmacion"
+        android:title="Ver datos cargados" />
+    <item
+        android:id="@+id/nav_contactos"
+        android:title="Teléfonos de emergencia" />
+    <item
+        android:id="@+id/nav_logout"
+        android:title="Cerrar sesión"
+        android:icon="@android:drawable/ic_lock_power_off" />
+
+
+</menu>

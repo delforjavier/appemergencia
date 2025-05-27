@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".RegistroActivity">
+
+    <!-- Toolbar arriba -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:title="Registro"
+        android:titleTextColor="@android:color/white" />
+
+    <EditText
+        android:id="@+id/etNombre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nombre" />
+
+    <EditText
+        android:id="@+id/etApellido"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Apellido" />
+
+    <EditText
+        android:id="@+id/etDomicilio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Domicilio" />
+
+    <EditText
+        android:id="@+id/etAdultos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Cantidad de adultos"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/etNinos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Cantidad de niños"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/etMayores"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Cantidad de adultos mayores"
+        android:inputType="number" />
+
+    <Switch
+        android:id="@+id/switchTratamiento"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¿Requiere tratamiento médico?" />
+
+    <Button
+        android:id="@+id/btnGuardar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Guardar datos" />
+
+</LinearLayout>
