@@ -1,8 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?> <!-- Declaración del archivo XML con codificación UTF-8 -->
+
+
+<!-- Define el nombre del paquete de la app -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.delforjavier.emergenciaapp">
 
+
+    <!-- Configuración general de la aplicación -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -14,17 +19,34 @@
         android:theme="@style/Theme.Emergenciaapp"
         tools:targetApi="31">
 
+
+        <!-- Declaración de cada pantalla (Activity) que tiene la app -->
+
+        <!-- Pantalla con teléfonos de emergencia -->
         <activity android:name=".TelefonosEmergenciaActivity" />
+
+        <!-- Pantalla donde se muestran o procesan los datos ingresados -->
         <activity android:name=".DatosIngresadosActivity" />
+
+        <!-- Pantalla para registrar información de personas en emergencia -->
         <activity android:name=".RegistroActivity" />
+
+        <!-- Pantalla principal de la app (allí se puede observar el menú hamburguesa) -->
         <activity android:name=".MainActivity" />
+
+        <!-- Pantalla de registro (Para usuarios nuevos) -->
         <activity android:name=".RegisterActivity" />
 
         <!-- Pantalla de inicio -->
         <activity android:name=".LoginActivity"
-            android:exported="true">
+            android:exported="true"> <!-- Exported debe ser true si tiene un intent-filter MAIN -->
+
+            <!-- Define que esta actividad es el punto de entrada principal de la app -->
             <intent-filter>
+                <!-- Acción MAIN indica que es la primera que se ejecuta al abrir la app -->
                 <action android:name="android.intent.action.MAIN" />
+
+                <!-- Categoría LAUNCHER indica que se mostrará como ícono en el launcher del dispositivo -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
