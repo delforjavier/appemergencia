@@ -18,9 +18,10 @@
         <activity android:name=".DatosIngresadosActivity" />
         <activity android:name=".RegistroActivity" />
         <activity android:name=".MainActivity" />
+        <activity android:name=".RegisterActivity" />
 
         <!-- Pantalla de inicio -->
-        <activity android:name=".IdentificacionActivity"
+        <activity android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

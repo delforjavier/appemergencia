@@ -29,6 +29,7 @@ class RegistroActivity : AppCompatActivity() {
         val adultos = findViewById<EditText>(R.id.etAdultos)
         val ninos = findViewById<EditText>(R.id.etNinos)
         val mayores = findViewById<EditText>(R.id.etMayores)
+
         val switchTratamiento = findViewById<Switch>(R.id.switchTratamiento)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
 

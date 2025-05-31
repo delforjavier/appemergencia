@@ -7,6 +7,11 @@ android {
     namespace = "com.delforjavier.emergenciaapp"
     compileSdk = 35
 
+    buildFeatures {
+        dataBinding = true
+        viewBinding = true
+    }
+
     defaultConfig {
         applicationId = "com.delforjavier.emergenciaapp"
         minSdk = 26

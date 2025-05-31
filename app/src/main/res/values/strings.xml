@@ -1,6 +1,9 @@
 <resources>
-    <string name="app_name">emergenciaapp</string>
+    <string name="app_name">Emergencia App</string>
     <string name="navigation_drawer_open">Abrir menú</string>
     <string name="navigation_drawer_close">Cerrar menú</string>
-
+    <string name="btn_login">Login</string>
+    <string name="btn_register">Registrarse</string>
+    <string name="hint_username">Usuario</string>
+    <string name="hint_password">Contraseña</string>
 </resources>
