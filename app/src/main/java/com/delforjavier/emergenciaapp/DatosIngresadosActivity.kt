@@ -36,6 +36,7 @@ class DatosIngresadosActivity : AppCompatActivity() {
                 Adultos: ${registro.cantidadAdultos}
                 Mayores: ${registro.cantidadMayores}
                 Niños: ${registro.cantidadNinos}
+                Observaciones: ${registro.observaciones}
                 Tratamiento Médico: ${if (registro.tratamientoMedico) "Sí" else "No"}
                 """.trimIndent()
             }
