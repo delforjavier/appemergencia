@@ -16,8 +16,8 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnLogin.setOnClickListener {
-            val username = binding.etNombreLogin.text.toString().trim()
-            val password = binding.etDniLogin.text.toString().trim()
+            val username = binding.etUsuarioLogin.text.toString().trim()
+            val password = binding.etPasswordLogin.text.toString().trim()
 
             if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
@@ -32,7 +32,7 @@ class LoginActivity : AppCompatActivity() {
                 // Guardar en SharedPreferences para mantener la sesión
                 getSharedPreferences("usuario_login", MODE_PRIVATE).edit()
                     .putString("nombre", username)
-                    .putString("dni", password)
+                    .putString("contraseña", password)
                     .apply()
 
                 startActivity(Intent(this, MainActivity::class.java))
