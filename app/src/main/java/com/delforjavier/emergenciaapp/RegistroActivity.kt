@@ -16,10 +16,7 @@ class RegistroActivity : AppCompatActivity() {
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-
-        supportActionBar?.setDisplayHomeAsUpEnabled(true) // Flecha para volver atrás
-        supportActionBar?.title = "Cargar datos de emergencia "
+        supportActionBar?.title = "Cargar datos de emergencia"
 
         sharedPrefHelper = SharedPrefHelper(this)
 
@@ -30,12 +27,14 @@ class RegistroActivity : AppCompatActivity() {
         val ninos = findViewById<EditText>(R.id.etNinos)
         val mayores = findViewById<EditText>(R.id.etMayores)
         val observaciones = findViewById<EditText>(R.id.etObservaciones)
-
-
         val switchTratamiento = findViewById<Switch>(R.id.switchTratamiento)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
 
         btnGuardar.setOnClickListener {
+            // Obtener el usuario actual desde SharedPreferences
+            val prefs = getSharedPreferences("usuario_login", MODE_PRIVATE)
+            val usuarioActual = prefs.getString("nombre", "desconocido") ?: "desconocido"
+
             val registro = RegistroEmergencia(
                 nombre = nombre.text.toString(),
                 apellido = apellido.text.toString(),
@@ -44,10 +43,12 @@ class RegistroActivity : AppCompatActivity() {
                 cantidadMayores = mayores.text.toString().toIntOrNull() ?: 0,
                 cantidadNinos = ninos.text.toString().toIntOrNull() ?: 0,
                 observaciones = observaciones.text.toString(),
-                tratamientoMedico = switchTratamiento.isChecked
+                tratamientoMedico = switchTratamiento.isChecked,
+                creador = usuarioActual // Agregamos el usuario creador
             )
 
-            sharedPrefHelper.guardarRegistro(registro)
+            // Guardar el registro con el usuario creador
+            sharedPrefHelper.guardarRegistro(registro, usuarioActual)
 
             Toast.makeText(this, "Datos guardados correctamente", Toast.LENGTH_SHORT).show()
 
@@ -62,5 +63,4 @@ class RegistroActivity : AppCompatActivity() {
         onBackPressedDispatcher.onBackPressed()
         return true
     }
-
 }

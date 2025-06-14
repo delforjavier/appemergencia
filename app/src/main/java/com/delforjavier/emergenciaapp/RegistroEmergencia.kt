@@ -8,5 +8,6 @@ data class RegistroEmergencia(
     val cantidadMayores: Int,
     val cantidadNinos: Int,
     val observaciones: String,
-    val tratamientoMedico: Boolean
+    val tratamientoMedico: Boolean,
+    val creador: String = "" // Nuevo campo
 )

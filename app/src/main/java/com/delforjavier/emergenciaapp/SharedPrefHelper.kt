@@ -6,8 +6,24 @@ import com.google.gson.reflect.TypeToken
 
 class SharedPrefHelper(private val context: Context) {
 
-    private val sharedPreferences = context.getSharedPreferences("registro_pref", Context.MODE_PRIVATE)
-    private val gson = Gson()
+
+    fun guardarRegistro(nuevoRegistro: RegistroEmergencia, creador: String) {
+        val listaExistente = obtenerListaRegistros().toMutableList()
+        val registroConCreador = nuevoRegistro.copy(creador = creador)
+        listaExistente.add(registroConCreador)
+
+        val json = gson.toJson(listaExistente)
+        sharedPreferences.edit().putString("registro_lista", json).apply()
+    }
+
+    fun obtenerRegistrosPorUsuario(usuario: String): List<RegistroEmergencia> {
+        val todos = obtenerListaRegistros()
+        return todos.filter { it.creador == usuario }
+    }
+
+
+    val sharedPreferences = context.getSharedPreferences("registro_pref", Context.MODE_PRIVATE)
+    val gson = Gson()
 
     fun guardarRegistro(nuevoRegistro: RegistroEmergencia) {
         val listaExistente = obtenerListaRegistros().toMutableList()
