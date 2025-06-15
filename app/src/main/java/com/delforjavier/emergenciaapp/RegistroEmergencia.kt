@@ -1,5 +1,9 @@
 package com.delforjavier.emergenciaapp
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class RegistroEmergencia(
     val nombre: String,
     val apellido: String,
@@ -9,5 +13,5 @@ data class RegistroEmergencia(
     val cantidadNinos: Int,
     val observaciones: String,
     val tratamientoMedico: Boolean,
-    val creador: String = "" // Nuevo campo
-)
+    val creador: String = ""
+) : Parcelable

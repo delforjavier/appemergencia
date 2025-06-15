@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 class RegistroActivity : AppCompatActivity() {
 
     private lateinit var sharedPrefHelper: SharedPrefHelper
+    private var indiceEdicion: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +31,23 @@ class RegistroActivity : AppCompatActivity() {
         val switchTratamiento = findViewById<Switch>(R.id.switchTratamiento)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
 
+        // Verificar si estamos editando un registro existente
+        val registroEditar = intent.getParcelableExtra<RegistroEmergencia>("registro_editar")
+        indiceEdicion = intent.getIntExtra("indice_registro", -1)
+
+        if (registroEditar != null) {
+            // Llenar los campos con los datos del registro a editar
+            nombre.setText(registroEditar.nombre)
+            apellido.setText(registroEditar.apellido)
+            domicilio.setText(registroEditar.domicilio)
+            adultos.setText(registroEditar.cantidadAdultos.toString())
+            mayores.setText(registroEditar.cantidadMayores.toString())
+            ninos.setText(registroEditar.cantidadNinos.toString())
+            observaciones.setText(registroEditar.observaciones)
+            switchTratamiento.isChecked = registroEditar.tratamientoMedico
+            btnGuardar.text = "Actualizar datos"
+        }
+
         btnGuardar.setOnClickListener {
             // Obtener el usuario actual desde SharedPreferences
             val prefs = getSharedPreferences("usuario_login", MODE_PRIVATE)
@@ -44,13 +62,18 @@ class RegistroActivity : AppCompatActivity() {
                 cantidadNinos = ninos.text.toString().toIntOrNull() ?: 0,
                 observaciones = observaciones.text.toString(),
                 tratamientoMedico = switchTratamiento.isChecked,
-                creador = usuarioActual // Agregamos el usuario creador
+                creador = usuarioActual
             )
 
-            // Guardar el registro con el usuario creador
-            sharedPrefHelper.guardarRegistro(registro, usuarioActual)
-
-            Toast.makeText(this, "Datos guardados correctamente", Toast.LENGTH_SHORT).show()
+            if (indiceEdicion != -1) {
+                // Actualizar registro existente
+                sharedPrefHelper.actualizarRegistro(indiceEdicion, registro)
+                Toast.makeText(this, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show()
+            } else {
+                // Guardar nuevo registro
+                sharedPrefHelper.guardarRegistro(registro, usuarioActual)
+                Toast.makeText(this, "Datos guardados correctamente", Toast.LENGTH_SHORT).show()
+            }
 
             val intent = Intent(this, DatosIngresadosActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
