@@ -4,22 +4,26 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.delforjavier.emergenciaapp.data.AppDatabase
+import com.delforjavier.emergenciaapp.data.RegistroEmergenciaEntity
+import kotlinx.coroutines.launch
 
 class RegistroActivity : AppCompatActivity() {
 
-    private lateinit var sharedPrefHelper: SharedPrefHelper
-    private var indiceEdicion: Int = -1
+    private lateinit var database: AppDatabase
+    private var registroId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registro)
 
+        database = AppDatabase.getDatabase(this)
+
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Cargar datos de emergencia"
-
-        sharedPrefHelper = SharedPrefHelper(this)
 
         val nombre = findViewById<EditText>(R.id.etNombre)
         val apellido = findViewById<EditText>(R.id.etApellido)
@@ -33,10 +37,9 @@ class RegistroActivity : AppCompatActivity() {
 
         // Verificar si estamos editando un registro existente
         val registroEditar = intent.getParcelableExtra<RegistroEmergencia>("registro_editar")
-        indiceEdicion = intent.getIntExtra("indice_registro", -1)
+        registroId = intent.getIntExtra("indice_registro", -1)
 
         if (registroEditar != null) {
-            // Llenar los campos con los datos del registro a editar
             nombre.setText(registroEditar.nombre)
             apellido.setText(registroEditar.apellido)
             domicilio.setText(registroEditar.domicilio)
@@ -49,11 +52,11 @@ class RegistroActivity : AppCompatActivity() {
         }
 
         btnGuardar.setOnClickListener {
-            // Obtener el usuario actual desde SharedPreferences
             val prefs = getSharedPreferences("usuario_login", MODE_PRIVATE)
             val usuarioActual = prefs.getString("nombre", "desconocido") ?: "desconocido"
 
-            val registro = RegistroEmergencia(
+            val registro = RegistroEmergenciaEntity(
+                id = if (registroId != -1) registroId else 0,
                 nombre = nombre.text.toString(),
                 apellido = apellido.text.toString(),
                 domicilio = domicilio.text.toString(),
@@ -65,20 +68,24 @@ class RegistroActivity : AppCompatActivity() {
                 creador = usuarioActual
             )
 
-            if (indiceEdicion != -1) {
-                // Actualizar registro existente
-                sharedPrefHelper.actualizarRegistro(indiceEdicion, registro)
-                Toast.makeText(this, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show()
-            } else {
-                // Guardar nuevo registro
-                sharedPrefHelper.guardarRegistro(registro, usuarioActual)
-                Toast.makeText(this, "Datos guardados correctamente", Toast.LENGTH_SHORT).show()
-            }
+            lifecycleScope.launch {
+                if (registroId != -1) {
+                    database.registroEmergenciaDao().updateRegistro(registro)
+                    runOnUiThread {
+                        Toast.makeText(this@RegistroActivity, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    database.registroEmergenciaDao().insertRegistro(registro)
+                    runOnUiThread {
+                        Toast.makeText(this@RegistroActivity, "Datos guardados correctamente", Toast.LENGTH_SHORT).show()
+                    }
+                }
 
-            val intent = Intent(this, DatosIngresadosActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-            finish()
+                val intent = Intent(this@RegistroActivity, DatosIngresadosActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                finish()
+            }
         }
     }
 
