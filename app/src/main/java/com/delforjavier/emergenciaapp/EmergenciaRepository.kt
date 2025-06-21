@@ -1,12 +1,11 @@
 package com.delforjavier.emergenciaapp.data
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
 import com.delforjavier.emergenciaapp.RegistroEmergencia
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 class EmergenciaRepository(private val registroDao: RegistroEmergenciaDao) {
 
-    // Función de extensión para conversión
     private fun RegistroEmergenciaEntity.toDomainModel(): RegistroEmergencia {
         return RegistroEmergencia(
             nombre = this.nombre,
@@ -21,46 +20,20 @@ class EmergenciaRepository(private val registroDao: RegistroEmergenciaDao) {
         )
     }
 
-    // Operaciones con Flow
-    fun obtenerRegistrosPorUsuario(usuario: String): Flow<List<RegistroEmergencia>> {
-        val flowDeEntidades: Flow<List<RegistroEmergenciaEntity>> = registroDao.getRegistrosByUser(usuario)
-        return flowDeEntidades.map { entidades ->
-            entidades.map { entidad ->
-                RegistroEmergencia(
-                    nombre = entidad.nombre,
-                    apellido = entidad.apellido,
-                    domicilio = entidad.domicilio,
-                    cantidadAdultos = entidad.cantidadAdultos,
-                    cantidadMayores = entidad.cantidadMayores,
-                    cantidadNinos = entidad.cantidadNinos,
-                    observaciones = entidad.observaciones,
-                    tratamientoMedico = entidad.tratamientoMedico,
-                    creador = entidad.creador
-                )
-            }
+    // Métodos con LiveData
+    fun obtenerRegistrosPorUsuario(usuario: String): LiveData<List<RegistroEmergencia>> {
+        return registroDao.getRegistrosByUser(usuario).map { entidades ->
+            entidades.map { it.toDomainModel() }
         }
     }
 
-    fun obtenerTodosRegistros(): Flow<List<RegistroEmergencia>> {
-        val flowDeEntidades: Flow<List<RegistroEmergenciaEntity>> = registroDao.getAllRegistros()
-        return flowDeEntidades.map { entidades ->
-            entidades.map { entidad ->
-                RegistroEmergencia(
-                    nombre = entidad.nombre,
-                    apellido = entidad.apellido,
-                    domicilio = entidad.domicilio,
-                    cantidadAdultos = entidad.cantidadAdultos,
-                    cantidadMayores = entidad.cantidadMayores,
-                    cantidadNinos = entidad.cantidadNinos,
-                    observaciones = entidad.observaciones,
-                    tratamientoMedico = entidad.tratamientoMedico,
-                    creador = entidad.creador
-                )
-            }
+    fun obtenerTodosRegistros(): LiveData<List<RegistroEmergencia>> {
+        return registroDao.getAllRegistros().map { entidades ->
+            entidades.map { it.toDomainModel() }
         }
     }
 
-    // Operaciones suspendidas
+    // Métodos suspend (sin cambios)
     suspend fun insertarRegistro(registro: RegistroEmergenciaEntity): Long {
         return registroDao.insertRegistro(registro)
     }

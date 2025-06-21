@@ -1,15 +1,14 @@
 package com.delforjavier.emergenciaapp.data
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import androidx.room.Delete
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RegistroEmergenciaDao {
-
     @Insert
     suspend fun insertRegistro(registro: RegistroEmergenciaEntity): Long
 
@@ -19,13 +18,11 @@ interface RegistroEmergenciaDao {
     @Delete
     suspend fun deleteRegistro(registro: RegistroEmergenciaEntity)
 
-    // ✅ Devuelve un Flow en vez de un List y no usa suspend
     @Query("SELECT * FROM registros_emergencia WHERE creador = :usuario")
-    fun getRegistrosByUser(usuario: String): Flow<List<RegistroEmergenciaEntity>>
+    fun getRegistrosByUser(usuario: String): LiveData<List<RegistroEmergenciaEntity>>
 
-    // ✅ Devuelve un Flow en vez de un List y no usa suspend
     @Query("SELECT * FROM registros_emergencia")
-    fun getAllRegistros(): Flow<List<RegistroEmergenciaEntity>>
+    fun getAllRegistros(): LiveData<List<RegistroEmergenciaEntity>>
 
     @Query("DELETE FROM registros_emergencia WHERE creador = :usuario")
     suspend fun deleteRegistrosByUser(usuario: String)

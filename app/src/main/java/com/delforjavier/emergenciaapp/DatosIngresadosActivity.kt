@@ -11,19 +11,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import com.delforjavier.emergenciaapp.data.AppDatabase
-import kotlinx.coroutines.flow.collect
+import com.delforjavier.emergenciaapp.data.EmergenciaRepository
 import kotlinx.coroutines.launch
 
 class DatosIngresadosActivity : AppCompatActivity() {
 
-    private lateinit var database: AppDatabase
     private lateinit var containerLayout: LinearLayout
+    private lateinit var database: AppDatabase
+    private lateinit var repository: EmergenciaRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_datos_ingresados)
 
         database = AppDatabase.getDatabase(this)
+        repository = EmergenciaRepository(database.registroEmergenciaDao())
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -37,72 +39,77 @@ class DatosIngresadosActivity : AppCompatActivity() {
         val usuarioActual = prefs.getString("nombre", "")
         val esOperador = prefs.getBoolean("es_operador", false)
 
-        lifecycleScope.launch {
-            val flow = if (esOperador) {
-                database.registroEmergenciaDao().getAllRegistros()
-            } else {
-                database.registroEmergenciaDao().getRegistrosByUser(usuarioActual ?: "")
-            }
+        // Observar los datos con LiveData
+        val registrosLiveData = if (esOperador) {
+            repository.obtenerTodosRegistros()
+        } else {
+            repository.obtenerRegistrosPorUsuario(usuarioActual ?: "")
+        }
 
-            flow.collect { listaRegistros ->
-                runOnUiThread {
-                    containerLayout.removeAllViews()
+        registrosLiveData.observe(this) { listaRegistros ->
+            containerLayout.removeAllViews()
 
-                    if (listaRegistros.isNotEmpty()) {
-                        listaRegistros.forEachIndexed { index, registro ->
-                            val registroView = layoutInflater.inflate(R.layout.item_registro, null)
+            if (listaRegistros.isNotEmpty()) {
+                listaRegistros.forEach { registro ->
+                    val registroView = layoutInflater.inflate(R.layout.item_registro, null)
+                    val txtResumen = registroView.findViewById<TextView>(R.id.txtResumenDatos)
+                    val btnEditar = registroView.findViewById<Button>(R.id.btnEditar)
 
-                            val txtResumen = registroView.findViewById<TextView>(R.id.txtResumenDatos)
-                            val btnEditar = registroView.findViewById<Button>(R.id.btnEditar)
+                    val resumen = """
+                        Nombre: ${registro.nombre}
+                        Apellido: ${registro.apellido}
+                        Domicilio: ${registro.domicilio}
+                        Adultos: ${registro.cantidadAdultos}
+                        Mayores: ${registro.cantidadMayores}
+                        Niños: ${registro.cantidadNinos}
+                        Observaciones: ${registro.observaciones}
+                        Tratamiento Médico: ${if (registro.tratamientoMedico) "Sí" else "No"}
+                        ${if (esOperador) "Creado por: ${registro.creador}" else ""}
+                    """.trimIndent()
 
-                            val resumen = """
-                                Nombre: ${registro.nombre}
-                                Apellido: ${registro.apellido}
-                                Domicilio: ${registro.domicilio}
-                                Adultos: ${registro.cantidadAdultos}
-                                Mayores: ${registro.cantidadMayores}
-                                Niños: ${registro.cantidadNinos}
-                                Observaciones: ${registro.observaciones}
-                                Tratamiento Médico: ${if (registro.tratamientoMedico) "Sí" else "No"}
-                                ${if (esOperador) "Creado por: ${registro.creador}" else ""}
-                            """.trimIndent()
+                    txtResumen.text = resumen
 
-                            txtResumen.text = resumen
-
-                            btnEditar.setOnClickListener {
-                                val intent = Intent(this@DatosIngresadosActivity, RegistroActivity::class.java).apply {
-                                    putExtra("registro_editar", registro)
-                                    putExtra("indice_registro", registro.id)
-                                }
-                                startActivity(intent)
-                            }
-
-                            containerLayout.addView(registroView)
+                    btnEditar.setOnClickListener {
+                        val intent = Intent(this@DatosIngresadosActivity, RegistroActivity::class.java).apply {
+                            putExtra("registro_editar", registro)
+                            putExtra("indice_registro", registro.id ?: 0)  // Usamos el operador elvis por seguridad
                         }
-                    } else {
-                        val emptyView = TextView(this@DatosIngresadosActivity).apply {
-                            text = "No hay datos disponibles."
-                            textSize = 18f
-                            setPadding(0, 16, 0, 16)
-                        }
-                        containerLayout.addView(emptyView)
+                        startActivity(intent)
                     }
+
+                    containerLayout.addView(registroView)
                 }
+            } else {
+                val emptyView = TextView(this@DatosIngresadosActivity).apply {
+                    text = "No hay datos disponibles."
+                    textSize = 18f
+                    setPadding(0, 16, 0, 16)
+                }
+                containerLayout.addView(emptyView)
             }
         }
 
         btnLimpiar.setOnClickListener {
-            lifecycleScope.launch {
-                if (esOperador) {
-                    database.registroEmergenciaDao().deleteAllRegistros()
-                } else {
-                    database.registroEmergenciaDao().deleteRegistrosByUser(usuarioActual ?: "")
-                }
-
-                runOnUiThread {
-                    Toast.makeText(this@DatosIngresadosActivity, "Datos eliminados", Toast.LENGTH_SHORT).show()
-                    finish()
-                    startActivity(intent)
+            lifecycleScope.launch { // Corregido: Usamos lifecycleScope para corrutinas
+                try {
+                    if (esOperador) {
+                        repository.eliminarTodosRegistros()
+                    } else {
+                        usuarioActual?.let { user ->
+                            repository.eliminarRegistrosPorUsuario(user)
+                        }
+                    }
+                    Toast.makeText(
+                        this@DatosIngresadosActivity,
+                        "Datos eliminados",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this@DatosIngresadosActivity,
+                        "Error al eliminar datos: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
