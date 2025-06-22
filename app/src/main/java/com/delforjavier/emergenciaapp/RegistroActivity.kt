@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 class RegistroActivity : AppCompatActivity() {
 
     private lateinit var database: AppDatabase
-    private var registroId: Int = -1
+    private var registroId: Int = 0 // Cambiado a 0 por defecto
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +37,7 @@ class RegistroActivity : AppCompatActivity() {
 
         // Verificar si estamos editando un registro existente
         val registroEditar = intent.getParcelableExtra<RegistroEmergencia>("registro_editar")
-        registroId = intent.getIntExtra("indice_registro", -1)
+        registroId = registroEditar?.id ?: 0 // Usamos el ID del registro a editar o 0 para nuevo
 
         if (registroEditar != null) {
             nombre.setText(registroEditar.nombre)
@@ -56,7 +56,7 @@ class RegistroActivity : AppCompatActivity() {
             val usuarioActual = prefs.getString("nombre", "desconocido") ?: "desconocido"
 
             val registro = RegistroEmergenciaEntity(
-                id = if (registroId != -1) registroId else 0,
+                id = registroId, // Usamos el ID existente si estamos editando
                 nombre = nombre.text.toString(),
                 apellido = apellido.text.toString(),
                 domicilio = domicilio.text.toString(),
@@ -69,22 +69,43 @@ class RegistroActivity : AppCompatActivity() {
             )
 
             lifecycleScope.launch {
-                if (registroId != -1) {
-                    database.registroEmergenciaDao().updateRegistro(registro)
-                    runOnUiThread {
-                        Toast.makeText(this@RegistroActivity, "Datos actualizados correctamente", Toast.LENGTH_SHORT).show()
+                try {
+                    if (registroId != 0) {
+                        // Actualizar registro existente
+                        database.registroEmergenciaDao().updateRegistro(registro)
+                        runOnUiThread {
+                            Toast.makeText(
+                                this@RegistroActivity,
+                                "Datos actualizados correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        // Insertar nuevo registro
+                        database.registroEmergenciaDao().insertRegistro(registro)
+                        runOnUiThread {
+                            Toast.makeText(
+                                this@RegistroActivity,
+                                "Datos guardados correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                } else {
-                    database.registroEmergenciaDao().insertRegistro(registro)
+
+                    // Redirigir a la lista de datos
+                    val intent = Intent(this@RegistroActivity, DatosIngresadosActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    startActivity(intent)
+                    finish()
+                } catch (e: Exception) {
                     runOnUiThread {
-                        Toast.makeText(this@RegistroActivity, "Datos guardados correctamente", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@RegistroActivity,
+                            "Error: ${e.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
-
-                val intent = Intent(this@RegistroActivity, DatosIngresadosActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
-                finish()
             }
         }
     }

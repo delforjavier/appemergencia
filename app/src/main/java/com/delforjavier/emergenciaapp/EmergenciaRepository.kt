@@ -8,6 +8,7 @@ class EmergenciaRepository(private val registroDao: RegistroEmergenciaDao) {
 
     private fun RegistroEmergenciaEntity.toDomainModel(): RegistroEmergencia {
         return RegistroEmergencia(
+            id = this.id, // Asegúrate de incluir el ID
             nombre = this.nombre,
             apellido = this.apellido,
             domicilio = this.domicilio,

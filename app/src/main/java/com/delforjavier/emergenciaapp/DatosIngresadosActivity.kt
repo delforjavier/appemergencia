@@ -1,5 +1,6 @@
 package com.delforjavier.emergenciaapp
 
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
@@ -14,30 +15,38 @@ import com.delforjavier.emergenciaapp.data.AppDatabase
 import com.delforjavier.emergenciaapp.data.EmergenciaRepository
 import kotlinx.coroutines.launch
 
+
 class DatosIngresadosActivity : AppCompatActivity() {
+
 
     private lateinit var containerLayout: LinearLayout
     private lateinit var database: AppDatabase
     private lateinit var repository: EmergenciaRepository
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_datos_ingresados)
 
+
         database = AppDatabase.getDatabase(this)
         repository = EmergenciaRepository(database.registroEmergenciaDao())
+
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Ver Datos Cargados"
 
+
         containerLayout = findViewById(R.id.containerLayout)
         val btnLimpiar = findViewById<Button>(R.id.btnLimpiar)
+
 
         val prefs = getSharedPreferences("usuario_login", MODE_PRIVATE)
         val usuarioActual = prefs.getString("nombre", "")
         val esOperador = prefs.getBoolean("es_operador", false)
+
 
         // Observar los datos con LiveData
         val registrosLiveData = if (esOperador) {
@@ -46,8 +55,10 @@ class DatosIngresadosActivity : AppCompatActivity() {
             repository.obtenerRegistrosPorUsuario(usuarioActual ?: "")
         }
 
+
         registrosLiveData.observe(this) { listaRegistros ->
             containerLayout.removeAllViews()
+
 
             if (listaRegistros.isNotEmpty()) {
                 listaRegistros.forEach { registro ->
@@ -55,27 +66,31 @@ class DatosIngresadosActivity : AppCompatActivity() {
                     val txtResumen = registroView.findViewById<TextView>(R.id.txtResumenDatos)
                     val btnEditar = registroView.findViewById<Button>(R.id.btnEditar)
 
+
                     val resumen = """
-                        Nombre: ${registro.nombre}
-                        Apellido: ${registro.apellido}
-                        Domicilio: ${registro.domicilio}
-                        Adultos: ${registro.cantidadAdultos}
-                        Mayores: ${registro.cantidadMayores}
-                        Niños: ${registro.cantidadNinos}
-                        Observaciones: ${registro.observaciones}
-                        Tratamiento Médico: ${if (registro.tratamientoMedico) "Sí" else "No"}
-                        ${if (esOperador) "Creado por: ${registro.creador}" else ""}
-                    """.trimIndent()
+                       Nombre: ${registro.nombre}
+                       Apellido: ${registro.apellido}
+                       Domicilio: ${registro.domicilio}
+                       Adultos: ${registro.cantidadAdultos}
+                       Mayores: ${registro.cantidadMayores}
+                       Niños: ${registro.cantidadNinos}
+                       Observaciones: ${registro.observaciones}
+                       Tratamiento Médico: ${if (registro.tratamientoMedico) "Sí" else "No"}
+                       ${if (esOperador) "Creado por: ${registro.creador}" else ""}
+                   """.trimIndent()
+
 
                     txtResumen.text = resumen
+
 
                     btnEditar.setOnClickListener {
                         val intent = Intent(this@DatosIngresadosActivity, RegistroActivity::class.java).apply {
                             putExtra("registro_editar", registro)
-                            putExtra("indice_registro", registro.id ?: 0)  // Usamos el operador elvis por seguridad
+                            putExtra("indice_registro", registro.id) // Usamos el ID real del registro
                         }
                         startActivity(intent)
                     }
+
 
                     containerLayout.addView(registroView)
                 }
@@ -89,8 +104,9 @@ class DatosIngresadosActivity : AppCompatActivity() {
             }
         }
 
+
         btnLimpiar.setOnClickListener {
-            lifecycleScope.launch { // Corregido: Usamos lifecycleScope para corrutinas
+            lifecycleScope.launch { // Usamos lifecycleScope para corrutinas
                 try {
                     if (esOperador) {
                         repository.eliminarTodosRegistros()
@@ -115,11 +131,11 @@ class DatosIngresadosActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
             onBackPressed()
             return true
         }
         return super.onOptionsItemSelected(item)
-    }
-}
+    }}
