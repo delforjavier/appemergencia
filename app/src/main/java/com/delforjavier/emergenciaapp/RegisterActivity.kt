@@ -4,16 +4,23 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.delforjavier.emergenciaapp.data.AppDatabase
+import com.delforjavier.emergenciaapp.data.UserEntity
 import com.delforjavier.emergenciaapp.databinding.ActivityRegisterBinding
+import kotlinx.coroutines.launch
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
+    private lateinit var database: AppDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        database = AppDatabase.getDatabase(this)
 
         binding.btnRegister.setOnClickListener {
             val username = binding.etUsername.text.toString().trim()
@@ -30,15 +37,20 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Guardar las credenciales en SharedPreferences
-            val prefs = getSharedPreferences("user_credentials", MODE_PRIVATE)
-            prefs.edit()
-                .putString("username_$username", username)
-                .putString("password_$username", password)
-                .apply()
+            lifecycleScope.launch {
+                if (database.userDao().getUser(username) != null) {
+                    runOnUiThread {
+                        Toast.makeText(this@RegisterActivity, "El usuario ya existe", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
 
-            Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show()
-            finish() // Vuelve al LoginActivity
+                database.userDao().insertUser(UserEntity(username, password))
+                runOnUiThread {
+                    Toast.makeText(this@RegisterActivity, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
         }
     }
 }

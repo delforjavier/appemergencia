@@ -13,13 +13,17 @@
         android:title="Ver datos cargados"
         android:titleTextColor="@android:color/white" />
 
-    <TextView
-        android:id="@+id/txtResumenDatos"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Resumen"
-        android:textSize="18sp"
-        android:textColor="@android:color/black" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/containerLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
 
     <Button
         android:id="@+id/btnLimpiar"
@@ -29,6 +33,5 @@
         android:backgroundTint="@color/teal_700"
         android:textColor="@android:color/white"
         android:layout_marginTop="16dp" />
-
 
 </LinearLayout>
