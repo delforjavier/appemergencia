@@ -52,5 +52,13 @@ class RegisterActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // Nuevo botón Volver
+        binding.btnVolver.setOnClickListener {
+            // Volver a LoginActivity
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+            finish() // Opcional: cierra esta actividad para que no quede en la pila
+        }
     }
 }
