@@ -12,7 +12,8 @@ import kotlinx.coroutines.launch
 class RegistroActivity : AppCompatActivity() {
 
     private lateinit var database: AppDatabase
-    private var registroId: Int = 0 // Cambiado a 0 por defecto
+    private var registroId: Int = 0
+    private var creadorOriginal: String = "" // Nuevo campo para guardar el creador original
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,9 +36,8 @@ class RegistroActivity : AppCompatActivity() {
         val switchTratamiento = findViewById<Switch>(R.id.switchTratamiento)
         val btnGuardar = findViewById<Button>(R.id.btnGuardar)
 
-        // Verificar si estamos editando un registro existente
         val registroEditar = intent.getParcelableExtra<RegistroEmergencia>("registro_editar")
-        registroId = registroEditar?.id ?: 0 // Usamos el ID del registro a editar o 0 para nuevo
+        registroId = registroEditar?.id ?: 0
 
         if (registroEditar != null) {
             nombre.setText(registroEditar.nombre)
@@ -49,14 +49,30 @@ class RegistroActivity : AppCompatActivity() {
             observaciones.setText(registroEditar.observaciones)
             switchTratamiento.isChecked = registroEditar.tratamientoMedico
             btnGuardar.text = "Actualizar datos"
+
+            // Guardar el creador original del registro
+            creadorOriginal = registroEditar.creador
         }
 
         btnGuardar.setOnClickListener {
             val prefs = getSharedPreferences("usuario_login", MODE_PRIVATE)
             val usuarioActual = prefs.getString("nombre", "desconocido") ?: "desconocido"
+            val esOperador = prefs.getBoolean("es_operador", false)
+
+            // Determinar el creador a guardar
+            val creadorFinal = if (registroId != 0 && !esOperador) {
+                // Si estamos editando y el usuario no es operador, usar el usuario actual
+                usuarioActual
+            } else if (registroId != 0 && esOperador && creadorOriginal.isNotEmpty()) {
+                // Si es operador editando, mantener el creador original
+                creadorOriginal
+            } else {
+                // Para nuevos registros, usar el usuario actual
+                usuarioActual
+            }
 
             val registro = RegistroEmergenciaEntity(
-                id = registroId, // Usamos el ID existente si estamos editando
+                id = registroId,
                 nombre = nombre.text.toString(),
                 apellido = apellido.text.toString(),
                 domicilio = domicilio.text.toString(),
@@ -65,13 +81,12 @@ class RegistroActivity : AppCompatActivity() {
                 cantidadNinos = ninos.text.toString().toIntOrNull() ?: 0,
                 observaciones = observaciones.text.toString(),
                 tratamientoMedico = switchTratamiento.isChecked,
-                creador = usuarioActual
+                creador = creadorFinal // Usamos el creador determinado
             )
 
             lifecycleScope.launch {
                 try {
                     if (registroId != 0) {
-                        // Actualizar registro existente
                         database.registroEmergenciaDao().updateRegistro(registro)
                         runOnUiThread {
                             Toast.makeText(
@@ -81,7 +96,6 @@ class RegistroActivity : AppCompatActivity() {
                             ).show()
                         }
                     } else {
-                        // Insertar nuevo registro
                         database.registroEmergenciaDao().insertRegistro(registro)
                         runOnUiThread {
                             Toast.makeText(
@@ -94,9 +108,8 @@ class RegistroActivity : AppCompatActivity() {
 
                     // Redirigir a la lista de datos
                     val intent = Intent(this@RegistroActivity, DatosIngresadosActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                     startActivity(intent)
-                    finish()
                 } catch (e: Exception) {
                     runOnUiThread {
                         Toast.makeText(

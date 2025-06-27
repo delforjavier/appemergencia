@@ -8,7 +8,7 @@ class EmergenciaRepository(private val registroDao: RegistroEmergenciaDao) {
 
     private fun RegistroEmergenciaEntity.toDomainModel(): RegistroEmergencia {
         return RegistroEmergencia(
-            id = this.id, // Asegúrate de incluir el ID
+            id = this.id,
             nombre = this.nombre,
             apellido = this.apellido,
             domicilio = this.domicilio,
@@ -21,20 +21,22 @@ class EmergenciaRepository(private val registroDao: RegistroEmergenciaDao) {
         )
     }
 
-    // Métodos con LiveData
-    fun obtenerRegistrosPorUsuario(usuario: String): LiveData<List<RegistroEmergencia>> {
-        return registroDao.getRegistrosByUser(usuario).map { entidades ->
-            entidades.map { it.toDomainModel() }
+    // Metodo para obtener registros según el tipo de usuario
+    fun obtenerRegistrosParaUsuario(usuario: String, esOperador: Boolean): LiveData<List<RegistroEmergencia>> {
+        return if (esOperador) {
+            // Operadores ven todos los registros
+            registroDao.getAllRegistros().map { entidades ->
+                entidades.map { it.toDomainModel() }
+            }
+        } else {
+            // Usuarios comunes ven sus propios registros y los de operadores
+            registroDao.getRegistrosByUser(usuario).map { entidades ->
+                entidades.map { it.toDomainModel() }
+            }
         }
     }
 
-    fun obtenerTodosRegistros(): LiveData<List<RegistroEmergencia>> {
-        return registroDao.getAllRegistros().map { entidades ->
-            entidades.map { it.toDomainModel() }
-        }
-    }
-
-    // Métodos suspend (sin cambios)
+    // Métodos existentes...
     suspend fun insertarRegistro(registro: RegistroEmergenciaEntity): Long {
         return registroDao.insertRegistro(registro)
     }
