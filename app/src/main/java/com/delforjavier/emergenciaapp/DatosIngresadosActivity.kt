@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import com.delforjavier.emergenciaapp.data.AppDatabase
 import com.delforjavier.emergenciaapp.data.EmergenciaRepository
 import kotlinx.coroutines.launch
+import com.delforjavier.emergenciaapp.data.RegistroEmergenciaEntity
 
 class DatosIngresadosActivity : AppCompatActivity() {
 
@@ -79,18 +80,19 @@ class DatosIngresadosActivity : AppCompatActivity() {
                     val registroView = layoutInflater.inflate(R.layout.item_registro, null)
                     val txtResumen = registroView.findViewById<TextView>(R.id.txtResumenDatos)
                     val btnEditar = registroView.findViewById<Button>(R.id.btnEditar)
+                    val btnEliminar = registroView.findViewById<Button>(R.id.btnEliminar)
 
                     val resumen = """
-                       Nombre: ${registro.nombre}
-                       Apellido: ${registro.apellido}
-                       Domicilio: ${registro.domicilio}
-                       Adultos: ${registro.cantidadAdultos}
-                       Mayores: ${registro.cantidadMayores}
-                       Niños: ${registro.cantidadNinos}
-                       Observaciones: ${registro.observaciones}
-                       Tratamiento Médico: ${if (registro.tratamientoMedico) "Sí" else "No"}
-                       ${if (esOperador) "Creado por: ${registro.creador}" else ""}
-                   """.trimIndent()
+                   Nombre: ${registro.nombre}
+                   Apellido: ${registro.apellido}
+                   Domicilio: ${registro.domicilio}
+                   Adultos: ${registro.cantidadAdultos}
+                   Mayores: ${registro.cantidadMayores}
+                   Niños: ${registro.cantidadNinos}
+                   Observaciones: ${registro.observaciones}
+                   Tratamiento Médico: ${if (registro.tratamientoMedico) "Sí" else "No"}
+                   ${if (esOperador) "Creado por: ${registro.creador}" else ""}
+               """.trimIndent()
 
                     txtResumen.text = resumen
 
@@ -99,6 +101,46 @@ class DatosIngresadosActivity : AppCompatActivity() {
                             putExtra("registro_editar", registro)
                         }
                         startActivity(intent)
+                    }
+
+                    btnEliminar.setOnClickListener {
+                        // Mostrar diálogo de confirmación
+                        android.app.AlertDialog.Builder(this@DatosIngresadosActivity)
+                            .setTitle("Confirmar eliminación")
+                            .setMessage("¿Estás seguro de que deseas eliminar este registro?")
+                            .setPositiveButton("Eliminar") { dialog, which ->
+                                lifecycleScope.launch {
+                                    try {
+                                        // Convertir a entidad para eliminar
+                                        val registroEntity = RegistroEmergenciaEntity(
+                                            id = registro.id,
+                                            nombre = registro.nombre,
+                                            apellido = registro.apellido,
+                                            domicilio = registro.domicilio,
+                                            cantidadAdultos = registro.cantidadAdultos,
+                                            cantidadMayores = registro.cantidadMayores,
+                                            cantidadNinos = registro.cantidadNinos,
+                                            observaciones = registro.observaciones,
+                                            tratamientoMedico = registro.tratamientoMedico,
+                                            creador = registro.creador
+                                        )
+                                        repository.eliminarRegistro(registroEntity)
+                                        Toast.makeText(
+                                            this@DatosIngresadosActivity,
+                                            "Registro eliminado",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } catch (e: Exception) {
+                                        Toast.makeText(
+                                            this@DatosIngresadosActivity,
+                                            "Error al eliminar: ${e.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
+                            .setNegativeButton("Cancelar", null)
+                            .show()
                     }
 
                     containerLayout.addView(registroView)
